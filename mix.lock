@@ -1,0 +1,3 @@
+%{
+  "simple_enum": {:git, "https://github.com/imnotavirus/simple_enum.git", "e88325681fbcf9c04daccbb68889e413af4c6784", []},
+}
