@@ -1,3 +1,5 @@
 %{
+  "elvengard_network": {:git, "https://github.com/elvengard-mmo/elvengard_network.git", "460082c5608a358e86be055ef2370e0899e77299", []},
+  "ranch": {:hex, :ranch, "2.2.0", "25528f82bc8d7c6152c57666ca99ec716510fe0925cb188172f41ce93117b1b0", [:make, :rebar3], [], "hexpm", "fa0b99a1780c80218a4197a59ea8d3bdae32fbff7e88527d7d8a4787eff4f8e7"},
   "simple_enum": {:git, "https://github.com/imnotavirus/simple_enum.git", "e88325681fbcf9c04daccbb68889e413af4c6784", []},
 }

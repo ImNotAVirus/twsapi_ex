@@ -29,27 +29,4 @@ defmodule TWSAPIEx.Comm do
   def read_fields(buf) do
     :binary.split(buf, <<0>>, [:global, :trim])
   end
-
-  @doc """
-  Adds the NULL string terminator
-  """
-  @spec make_field(any()) :: iodata()
-  def make_field(val) do
-    normalized_val =
-      cond do
-        is_nil(val) ->
-          raise ArgumentError, "Cannot send nil to TWS"
-
-        is_binary(val) and byte_size(val) > 0 and not String.printable?(val) ->
-          raise "Invalid symbol: #{val}"
-
-        is_boolean(val) ->
-          if val, do: "1", else: "0"
-
-        true ->
-          to_string(val)
-      end
-
-    [normalized_val, <<0>>]
-  end
 end

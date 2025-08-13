@@ -22,7 +22,8 @@ defmodule TWSAPIEx.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:simple_enum, github: "imnotavirus/simple_enum"}
+      {:simple_enum, github: "imnotavirus/simple_enum"},
+      {:elvengard_network, github: "elvengard-mmo/elvengard_network"}
     ]
   end
 end

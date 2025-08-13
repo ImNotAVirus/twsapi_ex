@@ -15,11 +15,11 @@ defmodule TWSAPIEx.Client do
   require TWSAPIEx.Messages, as: Msg
   require TWSAPIEx.ServerVersions, as: ServerVersions
 
-  import TWSAPIEx.Comm, only: [make_field: 1]
-
   alias __MODULE__
   alias __MODULE__.Handlers
   alias TWSAPIEx.Comm
+  alias TWSAPIEx.MessageViews
+  alias TWSAPIEx.Client.NetworkCodec
 
   defstruct [
     :host,
@@ -101,11 +101,9 @@ defmodule TWSAPIEx.Client do
 
     Logger.debug("Requesting account summary for group: #{group}, tags: #{tags}")
 
-    version = 1
-    req_id = System.unique_integer([:positive])
-
-    msg = build_out_msg(:req_account_summary, [version, req_id, group, tags])
-    :ok = send_message(socket, msg)
+    args = %{group: group, tags: tags}
+    {:ok, render} = send_message(socket, :req_account_summary, args)
+    req_id = render.req_id
 
     updated_state = %Client{state | reply_map: Map.put(reply_map, req_id, from)}
 
@@ -114,11 +112,16 @@ defmodule TWSAPIEx.Client do
 
   @impl true
   def handle_info({:tcp, _port, data}, %Client{} = state) do
-    [msg_id | fields] = Comm.read_fields(data)
-    msg_id_key = msg_id |> String.to_integer() |> Msg.in()
+    updated_state =
+      case NetworkCodec.decode(data, _socket = nil) do
+        nil ->
+          state
 
-    Logger.debug("RECEIVED msg:#{msg_id_key} fields:#{inspect(fields)}")
-    {:ok, updated_state} = Handlers.handle_message(msg_id_key, fields, state)
+        struct ->
+          Logger.debug("RECEIVED msg:#{inspect(struct)}")
+          {:ok, updated_state} = Handlers.handle_message(struct, state)
+          updated_state
+      end
 
     {:noreply, updated_state}
   end
@@ -187,36 +190,32 @@ defmodule TWSAPIEx.Client do
     end
   end
 
-  defp build_out_msg(type, args) do
-    type_id = Msg.out(type)
-    [make_field(type_id), Enum.map(args, &make_field/1)]
-  end
-
   defp start_api(%Client{} = client) do
     %Client{
       socket: socket,
-      client_id: client_id,
       server_version: server_version,
+      client_id: client_id,
       opt_capabilities: opt_capabilities
     } = client
 
-    version = 2
+    args = %{
+      server_version: server_version,
+      client_id: client_id,
+      opt_capabilities: opt_capabilities
+    }
 
-    args =
-      if server_version >= ServerVersions.min_server_ver(:optional_capabilities) do
-        [version, client_id, opt_capabilities]
-      else
-        [version, client_id]
-      end
-
-    msg = build_out_msg(:start_api, args)
-    :ok = send_message(socket, msg)
+    {:ok, _start_api} = send_message(socket, :start_api, args)
 
     client
   end
 
-  defp send_message(socket, msg) do
-    Logger.debug("SENDING: #{inspect(msg, binaries: :as_strings)}")
-    :ok = :gen_tcp.send(socket, msg)
+  defp send_message(socket, message_id, args) do
+    render = MessageViews.render(message_id, args)
+    data = NetworkCodec.encode(render, _socket = nil)
+
+    Logger.debug("SENDING: #{inspect(data, binaries: :as_strings)}")
+    :ok = :gen_tcp.send(socket, data)
+
+    {:ok, render}
   end
 end
