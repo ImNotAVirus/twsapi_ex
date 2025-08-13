@@ -28,6 +28,6 @@ defmodule TWSAPIEx.Messages.Types.Boolean do
   @impl true
   @spec encode(t(), Keyword.t()) :: iodata()
   def encode(data, _opts) when is_boolean(data) do
-    if data, do: "1", else: "0"
+    TypeHelpers.encode_field(if data, do: "1", else: "0")
   end
 end

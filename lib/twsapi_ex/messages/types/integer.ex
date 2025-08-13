@@ -21,6 +21,8 @@ defmodule TWSAPIEx.Messages.Types.Integer do
   @impl true
   @spec encode(t(), Keyword.t()) :: iodata()
   def encode(data, _opts) when is_integer(data) do
-    Integer.to_string(data)
+    data
+    |> Integer.to_string()
+    |> TypeHelpers.encode_field()
   end
 end

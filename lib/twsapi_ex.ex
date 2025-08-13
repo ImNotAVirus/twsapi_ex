@@ -33,6 +33,13 @@ defmodule TWSAPIEx do
     # https://www.interactivebrokers.com/campus/ibkr-api-page/twsapi-doc/#requesting-account-summary
     TWSAPIEx.Client.req_account_summary(pid, "All", "NetLiquidation") |> IO.inspect()
 
+    # https://www.interactivebrokers.com/campus/ibkr-api-page/twsapi-doc/#request-md-type
+    TWSAPIEx.Client.req_market_data_type(pid, :delayed) |> IO.inspect()
+
+    # https://www.interactivebrokers.com/campus/ibkr-api-page/twsapi-doc/#request-watchlist-data
+    # contract = %Contract{symbol: "AAPL", sec_type: "STK", exchange: "SMART", currency: "USD"}
+    # TWSAPIEx.Client.req_mkt_data(pid, contract, "232", false, false, []) |> IO.inspect()
+
     :ok
   end
 end

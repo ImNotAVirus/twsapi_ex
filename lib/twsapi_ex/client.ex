@@ -60,8 +60,53 @@ defmodule TWSAPIEx.Client do
 
   cf. https://www.interactivebrokers.com/campus/ibkr-api-page/twsapi-doc/#requesting-account-summary
   """
+  @spec req_account_summary(pid(), String.t(), String.t()) :: {:ok, map()}
   def req_account_summary(client, group, tags) do
     GenServer.call(client, {:req_account_summary, group, tags})
+  end
+
+  @doc """
+  Switches data type returned from reqMktData request to Live (1), Frozen (2), Delayed (3), or Frozen-Delayed (4).
+
+  cf. https://www.interactivebrokers.com/campus/ibkr-api-page/twsapi-doc/#request-md-type
+  """
+  @spec req_market_data_type(pid(), atom()) :: :ok
+  def req_market_data_type(client, market_data_type) do
+    GenServer.call(client, {:req_market_data_type, market_data_type})
+  end
+
+  @doc """
+  all this function to request market data.
+
+  The market data will be returned by the tickPrice and tickSize events.
+
+  contract:Contract - This structure contains a description of the
+      Contract for which market data is being requested.
+  genericTickList:str - A commma delimited list of generic tick types.
+      Tick types can be found in the Generic Tick Types page.
+      Prefixing w/ 'mdoff' indicates that top mkt data shouldn't tick.
+      You can specify the news source by postfixing w/ ':<source>.
+      Example: "mdoff,292:FLY+BRF"
+  snapshot:bool - Check to return a single snapshot of Market data and
+      have the market data subscription cancel. Do not enter any
+      genericTicklist values if you use snapshots.
+  regulatorySnapshot: bool - With the US Value Snapshot Bundle for stocks,
+      regulatory snapshots are available for 0.01 USD each.
+  mktDataOptions:TagValueList - For internal use only.
+      Use default value XYZ.
+  """
+  def req_mkt_data(
+        client,
+        contract,
+        generic_tick_list,
+        snapshot \\ false,
+        regulatory_snapshot \\ false,
+        data_options \\ []
+      ) do
+    GenServer.call(
+      client,
+      {:req_mkt_data, contract, generic_tick_list, snapshot, regulatory_snapshot, data_options}
+    )
   end
 
   ## GenServer behaviour
@@ -97,12 +142,12 @@ defmodule TWSAPIEx.Client do
 
   @impl true
   def handle_call({:req_account_summary, group, tags}, from, %Client{} = state) do
-    %Client{socket: socket, reply_map: reply_map} = state
+    %Client{reply_map: reply_map} = state
 
     Logger.debug("Requesting account summary for group: #{group}, tags: #{tags}")
 
     args = %{group: group, tags: tags}
-    {:ok, render} = send_message(socket, :req_account_summary, args)
+    {:ok, render} = send_message(:req_account_summary, args, state)
     req_id = render.req_id
 
     updated_state = %Client{state | reply_map: Map.put(reply_map, req_id, from)}
@@ -111,9 +156,45 @@ defmodule TWSAPIEx.Client do
   end
 
   @impl true
+  def handle_call({:req_market_data_type, market_data_type}, _from, %Client{} = state) do
+    %Client{server_version: server_version} = state
+
+    Logger.debug("Requesting market data type: #{market_data_type}")
+
+    args = %{server_version: server_version, market_data_type: market_data_type}
+    {:ok, _render} = send_message(:req_market_data_type, args, state)
+
+    {:reply, :ok, state}
+  end
+
+  @impl true
+  def handle_call(
+        {:req_mkt_data, contract, generic_tick_list, snapshot, regulatory_snapshot, data_options},
+        _from,
+        %Client{} = state
+      ) do
+    %Client{server_version: server_version} = state
+
+    Logger.debug("Requesting market data for contract: #{inspect(contract)}")
+
+    args = %{
+      server_version: server_version,
+      contract: contract,
+      generic_tick_list: generic_tick_list,
+      snapshot: snapshot,
+      regulatory_snapshot: regulatory_snapshot,
+      data_options: data_options
+    }
+
+    {:ok, _render} = send_message(:req_mkt_data, args, state)
+
+    {:reply, :ok, state}
+  end
+
+  @impl true
   def handle_info({:tcp, _port, data}, %Client{} = state) do
     updated_state =
-      case NetworkCodec.decode(data, _socket = nil) do
+      case NetworkCodec.decode(data, state) do
         nil ->
           state
 
@@ -192,7 +273,6 @@ defmodule TWSAPIEx.Client do
 
   defp start_api(%Client{} = client) do
     %Client{
-      socket: socket,
       server_version: server_version,
       client_id: client_id,
       opt_capabilities: opt_capabilities
@@ -204,14 +284,14 @@ defmodule TWSAPIEx.Client do
       opt_capabilities: opt_capabilities
     }
 
-    {:ok, _start_api} = send_message(socket, :start_api, args)
+    {:ok, _start_api} = send_message(:start_api, args, client)
 
     client
   end
 
-  defp send_message(socket, message_id, args) do
+  defp send_message(message_id, args, %Client{socket: socket} = client) do
     render = MessageViews.render(message_id, args)
-    data = NetworkCodec.encode(render, _socket = nil)
+    data = NetworkCodec.encode(render, client)
 
     Logger.debug("SENDING: #{inspect(data, binaries: :as_strings)}")
     :ok = :gen_tcp.send(socket, data)

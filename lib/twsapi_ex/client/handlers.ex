@@ -20,8 +20,13 @@ defmodule TWSAPIEx.Client.Handlers do
 
     payload = %{account: account, tag: tag, value: value, currency: currency}
 
-    if Map.has_key?(internal, req_id) do
-      Logger.warning("Overwriting account summary for req_id: #{req_id} - payload: #{payload}")
+    if Map.has_key?(internal, req_id) and internal[req_id] != payload do
+      old = internal[req_id]
+
+      Logger.warning(
+        "Overwriting account summary for req_id: #{req_id} " <>
+          "- old: #{inspect(old)} - new: #{inspect(payload)}"
+      )
     end
 
     updated_internal = Map.put(internal, req_id, payload)

@@ -12,4 +12,9 @@ defmodule TWSAPIEx.Messages.TypeHelpers do
       [field, rest] -> {field, rest}
     end
   end
+
+  @spec encode_field(binary()) :: iodata()
+  def encode_field(val) when is_binary(val) do
+    [val, <<0>>]
+  end
 end

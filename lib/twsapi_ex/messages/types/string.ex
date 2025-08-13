@@ -20,6 +20,6 @@ defmodule TWSAPIEx.Messages.Types.String do
   @impl true
   @spec encode(t(), Keyword.t()) :: iodata()
   def encode(data, _opts) when is_binary(data) do
-    data
+    TypeHelpers.encode_field(data)
   end
 end

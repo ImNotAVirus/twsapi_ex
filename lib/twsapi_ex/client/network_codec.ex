@@ -31,16 +31,14 @@ defmodule TWSAPIEx.Client.NetworkCodec do
   end
 
   @impl true
-  def encode(struct, _socket) when is_struct(struct) do
-    {message_id, params} = struct.__struct__.serialize(struct)
-
+  def encode(struct, socket) when is_struct(struct) do
+    {message_id, fields} = struct.__struct__.serialize(struct, socket)
     message_id_field = message_id |> Integer.to_string() |> make_field()
-    fields = Enum.map(params, &make_field/1)
 
-    [message_id_field, fields]
+    [message_id_field | fields]
   end
 
   ## Private functions
 
-  def make_field(val) when is_binary(val), do: [val, <<0>>]
+  defp make_field(val) when is_binary(val), do: [val, <<0>>]
 end

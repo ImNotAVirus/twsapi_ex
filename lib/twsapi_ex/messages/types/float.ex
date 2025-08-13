@@ -21,6 +21,8 @@ defmodule TWSAPIEx.Messages.Types.Float do
   @impl true
   @spec encode(t(), Keyword.t()) :: iodata()
   def encode(data, _opts) when is_float(data) do
-    Float.to_string(data)
+    data
+    |> Float.to_string()
+    |> TypeHelpers.encode_field()
   end
 end
