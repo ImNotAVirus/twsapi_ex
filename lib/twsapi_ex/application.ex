@@ -8,10 +8,8 @@ defmodule TWSAPIEx.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      # Starts a worker by calling: TWSAPIEx.Worker.start_link(arg)
-      # {TWSAPIEx.Worker, arg}
-      {DynamicSupervisor, strategy: :one_for_one, name: TWSAPIEx.DynamicSupervisor},
-      {Task, fn -> TWSAPIEx.test() end}
+      {DynamicSupervisor, strategy: :one_for_one, name: TWSAPIEx.DynamicSupervisor}
+      # {Task, fn -> TWSAPIEx.test() end}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

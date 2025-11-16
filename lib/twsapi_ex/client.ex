@@ -17,9 +17,9 @@ defmodule TWSAPIEx.Client do
 
   alias __MODULE__
   alias __MODULE__.Handlers
+  alias TWSAPIEx.Client.NetworkCodec
   alias TWSAPIEx.Comm
   alias TWSAPIEx.MessageViews
-  alias TWSAPIEx.Client.NetworkCodec
 
   defstruct [
     :host,

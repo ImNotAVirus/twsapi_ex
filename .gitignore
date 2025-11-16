@@ -21,3 +21,6 @@ twsapi_ex-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# Dev
+/.claude

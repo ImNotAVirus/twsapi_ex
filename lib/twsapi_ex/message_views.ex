@@ -48,20 +48,21 @@ defmodule TWSAPIEx.MessageViews do
   def render(:req_mkt_data, args) do
     server_version = required_arg!(args, :server_version)
     contract = required_arg!(args, :contract)
-    generic_tick_list = required_arg!(args, :generic_tick_list)
-    snapshot = required_arg!(args, :snapshot)
-    regulatory_snapshot = required_arg!(args, :regulatory_snapshot)
-    data_options = required_arg!(args, :data_options)
+    _generic_tick_list = required_arg!(args, :generic_tick_list)
+    _snapshot = required_arg!(args, :snapshot)
+    _regulatory_snapshot = required_arg!(args, :regulatory_snapshot)
+    _data_options = required_arg!(args, :data_options)
 
-    if server_version < min_server_ver(:delta_neutral) and is_def(contract.delta_neutral_contract) do
+    if server_version < min_server_ver(:delta_neutral) and
+         defined?(contract.delta_neutral_contract) do
       raise "Unsupported delta-neutral orders"
     end
 
-    if server_version < min_server_ver(:req_mkt_data_conid) and is_def(contract.con_id) do
+    if server_version < min_server_ver(:req_mkt_data_conid) and defined?(contract.con_id) do
       raise "Unsupported con_id parameter"
     end
 
-    if server_version < min_server_ver(:trading_class) and is_def(contract.trading_class) do
+    if server_version < min_server_ver(:trading_class) and defined?(contract.trading_class) do
       raise "Unsupported trading_class parameter in req_mkt_data"
     end
 
@@ -81,7 +82,7 @@ defmodule TWSAPIEx.MessageViews do
     Map.get(args, name)
   end
 
-  defp is_def(value) do
+  defp defined?(value) do
     value not in [nil, "", 0]
   end
 end

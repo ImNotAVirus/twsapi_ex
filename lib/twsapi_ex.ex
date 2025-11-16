@@ -31,9 +31,11 @@ defmodule TWSAPIEx do
     :ok = TWSAPIEx.Client.wait_for_connection(pid)
 
     # https://www.interactivebrokers.com/campus/ibkr-api-page/twsapi-doc/#requesting-account-summary
+    # credo:disable-for-next-line
     TWSAPIEx.Client.req_account_summary(pid, "All", "NetLiquidation") |> IO.inspect()
 
     # https://www.interactivebrokers.com/campus/ibkr-api-page/twsapi-doc/#request-md-type
+    # credo:disable-for-next-line
     TWSAPIEx.Client.req_market_data_type(pid, :delayed) |> IO.inspect()
 
     # https://www.interactivebrokers.com/campus/ibkr-api-page/twsapi-doc/#request-watchlist-data

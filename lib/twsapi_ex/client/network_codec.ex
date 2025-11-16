@@ -7,8 +7,8 @@ defmodule TWSAPIEx.Client.NetworkCodec do
 
   require TWSAPIEx.Messages, as: Msg
 
-  alias TWSAPIEx.Messages.Types.Integer, as: IntegerType
   alias TWSAPIEx.Messages.ServerMessages
+  alias TWSAPIEx.Messages.Types.Integer, as: IntegerType
 
   @behaviour ElvenGard.Network.NetworkCodec
 
